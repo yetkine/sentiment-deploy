@@ -7,14 +7,10 @@ services:
     autoDeploy: true
     envVars:
       - key: ConnectionStrings__Default
-        value: Data Source=/data/chat.db
+        value: Data Source=/tmp/chat.db
       - key: AiService__BaseUrl
         value: https://yetkine-sentiment-ai.hf.space
       - key: AiService__Endpoint
         value: /analyze
       - key: Cors__Origins
         value: https://<senin-vercel-domainin>.vercel.app,http://localhost:5173
-    disk: # <-- tekil!
-      name: data
-      mountPath: /data
-      sizeGB: 1
