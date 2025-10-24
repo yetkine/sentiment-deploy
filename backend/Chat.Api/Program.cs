@@ -1,6 +1,8 @@
 using Chat.Api.Data;
 using Chat.Api.Services;
 using Microsoft.EntityFrameworkCore;
+using Chat.Api.Models;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,5 +77,21 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapGet("/health", () => "ok");
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Migration kullanmıyorsanız:
+    await db.Database.EnsureCreatedAsync();
+
+    // Basit seed
+    if (!await db.Users.AnyAsync())
+    {
+        db.Users.Add(new User { Name = "Demo User" });
+        await db.SaveChangesAsync();
+    }
+}
+
 
 app.Run();
