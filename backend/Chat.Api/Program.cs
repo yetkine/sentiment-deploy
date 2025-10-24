@@ -50,6 +50,22 @@ builder.Services.AddHttpClient<SentimentClient>(client =>
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Şemayı oluştur (migrations yoksa)
+    db.Database.EnsureCreated();
+
+    // Basit seed: en az bir kullanıcı olsun ki /api/messages çağrısı FK hatasına düşmesin
+    if (!db.Users.Any())
+    {
+        db.Users.Add(new User { Id = 1, Name = "Demo User" }); // entity adlarını projedekiyle eşleştirin
+        db.SaveChanges();
+    }
+}
+
+
 // Middleware pipeline (sıra önemli)
 app.UseSwagger();
 app.UseSwaggerUI();
