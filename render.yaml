@@ -14,7 +14,7 @@ services:
         value: /analyze
       - key: Cors__Origins
         value: https://<senin-vercel-domainin>.vercel.app,http://localhost:5173
-    disks:
-      - name: data
-        mountPath: /data
-        sizeGB: 1
+    disk: # <-- tekil!
+      name: data
+      mountPath: /data
+      sizeGB: 1
