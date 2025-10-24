@@ -1,0 +1,61 @@
+# -------------------------
+# Node / Frontend
+# -------------------------
+**/node_modules
+**/.next
+**/dist
+**/build
+**/.cache
+**/coverage
+
+# React Native / Mobile (eğer mobile klasörü dahilse)
+**/ios/Pods
+**/ios/build
+**/ios/DerivedData
+**/android/.gradle
+**/android/build
+**/android/app/build
+*.xcworkspace
+*.xcarchive
+
+# -------------------------
+# Python / AI Service
+# -------------------------
+**/__pycache__
+**/.venv
+**/.pytest_cache
+*.pyc
+*.pyo
+*.pyd
+*.log
+.env
+.env.*
+
+# -------------------------
+# .NET / Backend
+# -------------------------
+**/bin/
+**/obj/
+*.db
+*.sqlite
+*.db-journal
+*.user
+*.suo
+*.vs/
+
+# -------------------------
+# Mac & OS
+# -------------------------
+.DS_Store
+.idea
+.vscode
+*.swp
+Thumbs.db
+
+# -------------------------
+# Deployment / Misc
+# -------------------------
+*.bak
+*.tmp
+*.zip
+*.tar.gz

@@ -1,0 +1,6 @@
+transformers==4.44.2
+torch>=2.2.0
+gradio==4.44.1
+numpy<2
+sentencepiece>=0.2.0
+protobuf>=5.27.0
