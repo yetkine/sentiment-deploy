@@ -1,36 +1,16 @@
-import React, { useState, useEffect } from "react";
-import api from "./api"; // ← axios yerine bunu kullan
+import React, { useState } from "react";
+import api from "./api";
 
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const userId = 1; // demo kullanıcı
-
-  // (opsiyonel) mevcut mesajları yükle
-  useEffect(() => {
-    (async () => {
-      try {
-        const res = await api.get(`/api/messages/by-user/${userId}`);
-        setMessages(res.data ?? []);
-      } catch (e) {
-        console.error("fetch messages failed", e);
-      }
-    })();
-  }, []);
+  const userId = 1;
 
   const sendMessage = async () => {
     if (!input.trim()) return;
-    try {
-      const res = await api.post("/api/messages", {
-        userId,
-        text: input,
-      });
-      setMessages((prev) => [...prev, res.data]);
-      setInput("");
-    } catch (e) {
-      console.error("send message failed", e);
-      alert("Mesaj gönderilemedi. Konsola bak.");
-    }
+    const res = await api.post("/messages", { userId, text: input });
+    setMessages((prev) => [...prev, res.data]);
+    setInput("");
   };
 
   return (
