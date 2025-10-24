@@ -5,10 +5,7 @@ services:
     rootDir: backend/Chat.Api
     plan: free
     autoDeploy: true
-    healthCheckPath: /health
     envVars:
-      - key: ASPNETCORE_URLS
-        value: http://+:8080
       - key: ConnectionStrings__Default
         value: Data Source=/data/chat.db
       - key: AiService__BaseUrl
@@ -16,8 +13,7 @@ services:
       - key: AiService__Endpoint
         value: /analyze
       - key: Cors__Origins
-        # Vercel URL'ini kendi projenle değiştir
-        value: https://SENIN-VERCEL-URL.vercel.app,http://localhost:5173
+        value: https://<senin-vercel-domainin>.vercel.app,http://localhost:5173
     disks:
       - name: data
         mountPath: /data
