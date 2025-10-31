@@ -20,26 +20,27 @@ public class MessagesController : ControllerBase
         _ai = ai;
     }
 
-    // Yeni mesaj oluşturur ve duygu analizi sonucunu ekler
+    // POST api/messages
     [HttpPost]
-    public async Task<ActionResult<Message>> Create(CreateMessageRequest req, CancellationToken ct)
+    public async Task<ActionResult<Message>> Create([FromBody] CreateMessageRequest req, CancellationToken ct)
     {
-        var user = await _db.Users.FindAsync(req.UserId);
-        if (user is null)
-            return BadRequest("User not found");
+        if (!ModelState.IsValid) return ValidationProblem(ModelState);
 
-        // AI servisini çağır (hata durumunda fallback)
+        var user = await _db.Users.FindAsync([req.UserId], ct);
+        if (user is null) return BadRequest("User not found");
+
         string label = "neutral";
         double score = 0.0;
 
         try
         {
-            var sa = await _ai.AnalyzeAsync(req.Text, ct);
-            label = sa.label;
-            score = sa.score;
+            var (lab, sc) = await _ai.AnalyzeAsync(req.Text, ct);
+            label = lab;
+            score = sc;
         }
         catch (Exception ex)
         {
+            // Logla ve nötr skorla devam et
             Console.WriteLine($"[Sentiment Error] {ex.Message}");
         }
 
@@ -58,22 +59,32 @@ public class MessagesController : ControllerBase
         return CreatedAtAction(nameof(Get), new { id = msg.Id }, msg);
     }
 
-    // ID'ye göre tek mesajı getirir
+    // GET api/messages/5
     [HttpGet("{id:int}")]
-    public async Task<ActionResult<Message>> Get(int id)
+    public async Task<ActionResult<Message>> Get(int id, CancellationToken ct)
     {
-        var message = await _db.Messages.Include(x => x.User).FirstOrDefaultAsync(x => x.Id == id);
+        var message = await _db.Messages
+            .AsNoTracking()
+            .Include(x => x.User)
+            .FirstOrDefaultAsync(x => x.Id == id, ct);
+
         return message is null ? NotFound() : Ok(message);
     }
 
-    // Belirli bir kullanıcıya ait mesajları getirir
+    // GET api/messages/by-user/1?skip=0&take=50
     [HttpGet("by-user/{userId:int}")]
-    public async Task<ActionResult<IEnumerable<Message>>> ByUser(int userId)
+    public async Task<ActionResult<IEnumerable<Message>>> ByUser(
+        int userId, [FromQuery] int skip = 0, [FromQuery] int take = 50, CancellationToken ct = default)
     {
+        take = Math.Clamp(take, 1, 200);
+
         var messages = await _db.Messages
+            .AsNoTracking()
             .Where(m => m.UserId == userId)
             .OrderBy(m => m.CreatedAt)
-            .ToListAsync();
+            .Skip(skip)
+            .Take(take)
+            .ToListAsync(ct);
 
         return Ok(messages);
     }

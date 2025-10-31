@@ -7,11 +7,11 @@ import {
   TouchableOpacity,
   FlatList,
   StyleSheet,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
-import axios from 'axios';
-
-// iOS Simulator için 127.0.0.1 uygundur. (Android emulator olursa 10.0.2.2)
-const BASE_URL = 'http://127.0.0.1:5104';
+import api from './src/services/api';
 
 type Msg = {
   id: number;
@@ -24,32 +24,22 @@ type Msg = {
 export default function App() {
   const [messages, setMessages] = useState<Msg[]>([]);
   const [text, setText] = useState('');
-  const userId = 1; // Swagger’da oluşturduğun kullanıcı id’si
+  const [sending, setSending] = useState(false);
+  const userId = 1; // seed user
 
   const sendMessage = async () => {
     const t = text.trim();
-    if (!t) return;
+    if (!t || sending) return;
 
+    setSending(true);
     try {
-      // .NET API: POST /api/Messages  -> CreateMessageRequest { userId, text }
-      const { data } = await axios.post<Msg>(
-        `${BASE_URL}/api/Messages`,
-        {
-          userId,
-          text: t,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json',
-          },
-        },
-      );
-
+      const { data } = await api.post<Msg>('/messages', { userId, text: t });
       setMessages(prev => [...prev, data]);
       setText('');
     } catch (err: any) {
       console.warn('sendMessage error:', err?.message || err);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -64,27 +54,43 @@ export default function App() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <Text style={styles.title}>AI Chat + Sentiment</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <Text style={styles.title}>AI Chat + Sentiment</Text>
 
-      <FlatList
-        style={styles.list}
-        data={messages}
-        keyExtractor={m => String(m.id)}
-        renderItem={renderItem}
-      />
-
-      <View style={styles.inputRow}>
-        <TextInput
-          style={styles.input}
-          value={text}
-          onChangeText={setText}
-          placeholder="Type your message..."
-          placeholderTextColor="#888"
+        <FlatList
+          style={styles.list}
+          data={messages}
+          keyExtractor={m => String(m.id)}
+          renderItem={renderItem}
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 8 }}
+          keyboardShouldPersistTaps="handled"
         />
-        <TouchableOpacity style={styles.button} onPress={sendMessage}>
-          <Text style={styles.buttonText}>Send</Text>
-        </TouchableOpacity>
-      </View>
+
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            value={text}
+            onChangeText={setText}
+            placeholder="Type your message..."
+            placeholderTextColor="#888"
+            editable={!sending}
+          />
+          <TouchableOpacity
+            style={[styles.button, sending && { opacity: 0.6 }]}
+            onPress={sendMessage}
+            disabled={sending}
+          >
+            {sending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.buttonText}>Send</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -98,7 +104,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 12,
   },
-  list: { flex: 1, paddingHorizontal: 16 },
+  list: { flex: 1 },
   bubble: {
     backgroundColor: '#141d2f',
     padding: 12,

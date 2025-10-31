@@ -59,4 +59,4 @@ Thumbs.db
 *.tmp
 *.zip
 *.tar.gz
-mobile/
+# mobile/
